@@ -1,7 +1,71 @@
+<!DOCTYPE html>
 <html>
-    <head>
-    </head>
-    <body>
-        Github Pages Sample
-    </body>
+
+<head>
+  <meta charset="utf-8">
+  <title>Zaif WebSocket Stream API Example</title>
+</head>
+
+<body>
+  <button id="btn-start">start</button>
+  <button id="btn-stop">stop</button>
+  <pre id="pnl-result"></pre>
+  <script type="text/javascript">
+  // MONA/JPY Trade History API Endpoint
+  // ref: https://corp.zaif.jp/api-docs/
+  const MONAJPY_ENDPOINT = "wss://ws.zaif.jp:8888/stream?currency_pair=mona_jpy";
+
+  var ws; // websocket instance
+
+  function createWebSocketInstance(_endpoint) {
+    return new WebSocket(_endpoint);
+  }
+
+  document.querySelector("#btn-start").onclick = function(e) {
+
+    if (ws && ws.readyState !== 3) {
+      console.warn("WebSocket instance already lived. Nothing done!");
+      return;
+    }
+
+    console.log("creating WebSocket instance...");
+
+    // create ws instance
+    ws = createWebSocketInstance(MONAJPY_ENDPOINT);
+
+    console.log("created WebSocket instance:", ws);
+    console.log("readyState:", ws.readyState); // readyState:0
+
+    ws.onopen = function(e) {
+      console.log("onopen:", e);
+      console.log("onopen: readyState:", ws.readyState); // readyState:1
+      // ws.send("Here's some text that the server is urgently awaiting!");
+    };
+
+    ws.onmessage = function(e) {
+      console.log("onmessage:", e.data); // data from server
+      console.log("onmessage: readyState:", ws.readyState); // readyState:1
+    };
+
+    ws.onerror = function(err) {
+      console.log("onerror:", err);
+      console.log("onerror: readyState:", ws.readyState);
+      // reconnect:
+      if (ws.readyState === 3) // if connection is closed... 
+        ws = createWebSocketInstance(MONAJPY_ENDPOINT);
+    };
+
+    ws.onclose = function(e) {
+      console.log("onclose:", e);
+      console.log("onclose: readyState:", ws.readyState); // readyState:3
+    };
+  };
+
+  document.querySelector("#btn-stop").onclick = function(e) {
+    console.log("closing...");
+    ws.close();
+  };
+  </script>
+</body>
+
 </html>
